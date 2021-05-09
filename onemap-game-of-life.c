@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define MAP_HEIGHT 70
+#define MAP_HEIGHT 69
 #define MAP_WIDTH 212
 
 typedef struct tile
@@ -11,40 +11,43 @@ typedef struct tile
 	int neighbors;
 }tile;
 
-void init_map(tile *m);
-void update(tile *m);
-void draw_map(tile *m);
+void init_map();
+void update();
+void draw_map();
 
-void build_glider(tile *m, int x, int y);
-void build_blinker(tile *m, int x, int y);
-void build_toad(tile *m, int x, int y);
-void build_beacon(tile *m, int x, int y);
-void build_random(tile *m);
+void build_glider(int x, int y);
+void build_blinker(int x, int y);
+void build_toad(int x, int y);
+void build_beacon(int x, int y);
+void build_random();
+
+tile map[MAP_HEIGHT][MAP_WIDTH];
+clock_t deltaTime = 0;
 
 int main()
 {
-	tile map[MAP_HEIGHT][MAP_WIDTH];
-
 	srand(clock());
-	init_map(map);
-	build_random(map);
+
+	init_map();
+	build_random();
 
 	while (1)
 	{
-		update(map);
-		draw_map(map);
+		clock_t begin = clock();
 
-		for (int i = 0; i < 29999999; i++);
+		update();
+		draw_map();
+
+		clock_t end = clock();
+
+		deltaTime = end - begin;
 	}
-
-	free(map);
 
 	return 0;
 }
 
-void init_map(tile *m)
+void init_map()
 {
-	tile (*map)[MAP_WIDTH] = (tile (*)[MAP_WIDTH])&m[0];
 	for (int i = 0; i < MAP_HEIGHT; i++)
 	{
 		for (int j = 0; j < MAP_WIDTH; j++)
@@ -55,9 +58,8 @@ void init_map(tile *m)
 	}
 }
 
-void update(tile *m)
+void update()
 {
-	tile (*map)[MAP_WIDTH] = (tile (*)[MAP_WIDTH])&m[0];
 	// update neighbors
 	for (int i = 0; i < MAP_HEIGHT; i++)
 	{
@@ -96,11 +98,10 @@ void update(tile *m)
 	}
 }
 
-void draw_map(tile *m)
+void draw_map()
 {
-	tile (*map)[MAP_WIDTH] = (tile (*)[MAP_WIDTH])&m[0];
-
-	printf("------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+	printf("%d", deltaTime);
+	printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
 	for (int i = 0; i < MAP_HEIGHT; i++)
 	{
 		for (int j = 0; j < MAP_WIDTH; j++)
@@ -116,9 +117,8 @@ void draw_map(tile *m)
 	}
 }
 
-void build_glider(tile *m, int x, int y)
+void build_glider(int x, int y)
 {
-	tile (*map)[MAP_WIDTH] = (tile (*)[MAP_WIDTH])&m[0];
 	map[0 + y][1 + x].alive = 1;
 	map[1 + y][2 + x].alive = 1;
 	map[2 + y][0 + x].alive = 1;
@@ -126,17 +126,15 @@ void build_glider(tile *m, int x, int y)
 	map[2 + y][2 + x].alive = 1;
 }
 
-void build_blinker(tile *m, int x, int y)
+void build_blinker(int x, int y)
 {
-	tile (*map)[MAP_WIDTH] = (tile (*)[MAP_WIDTH])&m[0];
 	map[1 + y][1 + x].alive = 1;
 	map[1 + y][2 + x].alive = 1;
 	map[1 + y][0 + x].alive = 1;
 }
 
-void build_random(tile *m)
+void build_random()
 {
-	tile (*map)[MAP_WIDTH] = (tile (*)[MAP_WIDTH])&m[0];
 	for (int i = 0; i < MAP_HEIGHT; i++)
 		for (int j = 0; j < MAP_WIDTH; j++)
 			map[i][j].alive = rand() % 2;

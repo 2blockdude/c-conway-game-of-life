@@ -1,19 +1,17 @@
 CC = gcc
 CFLAGS = -g
 LIBS = 
-MAIN = main
-SRC =
-OBJ = $(MAIN:%=%.o) $(SRC:%=%.o)
-DEPS = $(SRC:%=%.h)
+C_SOURCES :=$(wildcard *.c)
+C_EXECUTABLE :=$(C_SOURCES:.c=)
 
-$(MAIN): $(OBJ)
-	$(CC) -o $@ $^ $(LIBS)
+all:$(C_EXECUTABLE)
 
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+$(C_EXECUTABLES): $(C_SOURCES)
+	$(CC) -o $@ $< $(CFLAGS)
 
 .PHONY: clean
 
 clean:
-	rm -f $(MAIN)
-	rm -f $(OBJ)
+	rm -f malloc-game-of-life
+	rm -f onemap-game-of-life
+	rm -f twomap-game-of-life
