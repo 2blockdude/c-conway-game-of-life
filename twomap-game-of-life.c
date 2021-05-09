@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #define MAP_HEIGHT 69
@@ -26,7 +27,9 @@ tile mapTwo[MAP_HEIGHT][MAP_WIDTH];
 tile (*map)[MAP_WIDTH] = (tile (*)[MAP_WIDTH])&mapOne[0];
 tile (*newMap)[MAP_WIDTH] = (tile (*)[MAP_WIDTH])&mapTwo[0];
 
-clock_t deltaTime = 0;
+clock_t deltaTime = CLOCKS_PER_SEC;
+double secPerFrame = 0;
+double fps = 0;
 
 int main()
 {
@@ -34,6 +37,9 @@ int main()
 
 	init_map();
 	build_random();
+
+	int s = 0;
+	unsigned int f = 0;
 
 	while (1)
 	{
@@ -45,6 +51,8 @@ int main()
 		clock_t end = clock();
 
 		deltaTime = end - begin;
+		secPerFrame = (double)deltaTime / (double)CLOCKS_PER_SEC;
+		fps = (double)1 / secPerFrame;
 	}
 
 	return 0;
@@ -103,7 +111,7 @@ void update()
 
 void draw_map()
 {
-	printf("%d", deltaTime);
+	printf("%lf", fps);
 	printf("------------------------------------------------------------------------\n");
 	for (int i = 0; i < MAP_HEIGHT; i++)
 	{
