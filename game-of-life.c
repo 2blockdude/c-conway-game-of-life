@@ -3,8 +3,8 @@
 #include <string.h>
 #include <time.h>
 
-#define MAX_HEIGHT 68
-#define MAX_WIDTH 212
+#define MAX_HEIGHT 20
+#define MAX_WIDTH 20
 
 void init_map();
 void update();
@@ -16,6 +16,7 @@ void build_blinker(int x, int y);
 void build_toad(int x, int y);
 void build_beacon(int x, int y);
 void build_ant(int x, int y);
+void build_growth(int x, int y);
 void build_random();
 
 char *cellOutput;
@@ -30,7 +31,7 @@ int main()
 	srand(clock());
 
 	init_map();
-		build_glider(0, 0);
+	build_random();
 
 	while (1)
 	{
@@ -39,9 +40,7 @@ int main()
 		update();
 		draw_map();
 
-		//if (frame % 14 == 0)
-
-		for (int i = 0; i < 99999999; i++);
+		for (int i = 0; i < 49999999; i++);
 
 		clock_t end = clock();
 
@@ -108,8 +107,8 @@ void update()
 
 void draw_map()
 {
-	printf("%lf\t|%lf\t|%d\n", fps, deltaTime, frame);
-	printf("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+	printf("%0.6lf\t|%0.6lf\t|%0.6d\n", fps, deltaTime, frame);
+	printf("------------------------------------------------\n");
 
 	for (int i = 0; i < MAX_HEIGHT * MAX_WIDTH; i++)
 	{
@@ -184,6 +183,14 @@ void build_ant(int x, int y)
 		"  ##\n" \
 		"  ##\n" \
 		"##  ";
+
+	build_shape(shape, x, y);
+}
+
+void build_growth(int x, int y)
+{
+	char shape[] =
+		"######## #####   ###      ####### #####";
 
 	build_shape(shape, x, y);
 }
