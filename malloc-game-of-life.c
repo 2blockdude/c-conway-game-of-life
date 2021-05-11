@@ -21,7 +21,8 @@ void build_toad(tile *m, int x, int y);
 void build_beacon(tile *m, int x, int y);
 void build_random(tile *m);
 
-clock_t deltaTime = 0;
+double deltaTime = 0;
+double fps = 0;
 
 int main()
 {
@@ -40,7 +41,8 @@ int main()
 
 		clock_t end = clock();
 
-		deltaTime = end - begin;
+		deltaTime = (double)(end - begin) / CLOCKS_PER_SEC;
+		fps = 1.0f / deltaTime;
 	}
 
 	free(map);
@@ -109,7 +111,7 @@ void draw_map(tile *m)
 {
 	tile (*map)[MAP_WIDTH] = (tile (*)[MAP_WIDTH])&m[0];
 
-	printf("%d", deltaTime);
+	printf("%lf", fps);
 	printf("------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
 	for (int i = 0; i < MAP_HEIGHT; i++)
 	{

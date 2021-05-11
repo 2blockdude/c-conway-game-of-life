@@ -3,14 +3,8 @@
 #include <string.h>
 #include <time.h>
 
-#define MAP_HEIGHT 69
-#define MAP_WIDTH 212
-
-typedef struct tile
-{
-	int alive;
-	int neighbors;
-}tile;
+#define MAX_HEIGHT 69
+#define MAX_WIDTH 212
 
 void init_map();
 void update();
@@ -20,15 +14,13 @@ void build_glider(int x, int y);
 void build_blinker(int x, int y);
 void build_toad(int x, int y);
 void build_beacon(int x, int y);
+void build_shape(char *shape, int x, int y);
 void build_random();
 
-tile mapOne[MAP_HEIGHT][MAP_WIDTH];
-tile mapTwo[MAP_HEIGHT][MAP_WIDTH];
-tile (*map)[MAP_WIDTH] = (tile (*)[MAP_WIDTH])&mapOne[0];
-tile (*newMap)[MAP_WIDTH] = (tile (*)[MAP_WIDTH])&mapTwo[0];
+char *cellOutput;
+char *cellBuffer;
 
-clock_t deltaTime = CLOCKS_PER_SEC;
-double secPerFrame = 0;
+double deltaTime = CLOCKS_PER_SEC;
 double fps = 0;
 
 int main()
@@ -36,10 +28,14 @@ int main()
 	srand(clock());
 
 	init_map();
-	build_random();
 
-	int s = 0;
-	unsigned int f = 0;
+	char shape[] = 
+		" # \n" \
+		"  #\n" \
+		"###\n";
+
+	build_shape(shape, 0, 0);
+	//build_random();
 
 	while (1)
 	{
@@ -48,11 +44,12 @@ int main()
 		update();
 		draw_map();
 
+		for (int i = 0; i < 49999999; i++);
+
 		clock_t end = clock();
 
-		deltaTime = end - begin;
-		secPerFrame = (double)deltaTime / (double)CLOCKS_PER_SEC;
-		fps = (double)1 / secPerFrame;
+		deltaTime = (double)(end - begin) / CLOCKS_PER_SEC;
+		fps = 1.0f / deltaTime;
 	}
 
 	return 0;
@@ -60,93 +57,72 @@ int main()
 
 void init_map()
 {
-	for (int i = 0; i < MAP_HEIGHT; i++)
-	{
-		for (int j = 0; j < MAP_WIDTH; j++)
-		{
-			map[i][j].alive = 0;
-			map[i][j].neighbors = 0;
-		}
-	}
+	cellOutput = malloc(sizeof(char) * MAX_HEIGHT * MAX_WIDTH);
+	cellBuffer = malloc(sizeof(char) * MAX_HEIGHT * MAX_WIDTH);
+
+	for (int i = 0; i < MAX_HEIGHT * MAX_WIDTH; i++)
+		cellBuffer[i] = cellOutput[i] = 0;
 }
 
 void update()
 {
 	// update alive state
-	for (int i = 0; i < MAP_HEIGHT; i++)
+	for (int i = 0; i < MAX_HEIGHT * MAX_WIDTH; i++)
 	{
-		for (int j = 0; j < MAP_WIDTH; j++)
-		{
-			newMap[i][j].alive = map[i][j].alive;
-			newMap[i][j].neighbors = 0;
+		cellOutput[i] = cellBuffer[i];
 
-			// check all neighbors
-			for (int m = 0; m < 3; m++)
-			{
-				for (int n = 0; n < 3; n++)
-				{
-					int x = (j - 1) + n;
-					int y = (i - 1) + m;
-					if (y >= 0 && y < MAP_HEIGHT && x >= 0 && x < MAP_WIDTH)
-						if (y != i || x != j)
-							newMap[i][j].neighbors += map[y][x].alive;
-				}
-			}
+		int x = i % MAX_WIDTH;
+		int y = (i - x) / MAX_WIDTH;
 
-			if (newMap[i][j].neighbors <= 1)	// 1 or less dies
-				newMap[i][j].alive = 0;
-			if (newMap[i][j].neighbors >= 4)	// 4 or more dies
-				newMap[i][j].alive = 0;
-			if (newMap[i][j].neighbors == 3)	// 3 becomes alive
-				newMap[i][j].alive = 1;
-			// anything else then it should stay the same
-		}
+		int neighbors =
+			cellBuffer[(i - MAX_WIDTH - 1)]	+ cellBuffer[(i - MAX_WIDTH)]	+ cellBuffer[(i - MAX_WIDTH + 1)]	+
+			cellBuffer[(i - 1)]					+ 0									+ cellBuffer[(i + 1)]					+
+			cellBuffer[(i + MAX_WIDTH - 1)]	+ cellBuffer[(i + MAX_WIDTH)]	+ cellBuffer[(i + MAX_WIDTH + 1)];
+
+		if (neighbors >= 4 || neighbors <= 1)
+			cellOutput[i] = 0;
+		else if (neighbors == 3)
+			cellOutput[i] = 1;
+
 	}
 
-	// swap new and old map
-	tile (*temp)[MAP_WIDTH] = map;
-	map = newMap;
-	newMap = temp;
+	char *temp = cellOutput;
+	cellOutput = cellBuffer;
+	cellBuffer = temp;
 }
 
 void draw_map()
 {
 	printf("%lf", fps);
 	printf("------------------------------------------------------------------------\n");
-	for (int i = 0; i < MAP_HEIGHT; i++)
+	for (int i = 0; i < MAX_HEIGHT * MAX_WIDTH; i++)
 	{
-		for (int j = 0; j < MAP_WIDTH; j++)
-		{
-			if (map[i][j].alive)
-				printf("%d", map[i][j].neighbors);
-			else
-				printf(" ", map[i][j].neighbors);
+		if (cellOutput[i])
+			printf("#");
+		else
+			printf(" ");
 
-			if (j >= MAP_WIDTH - 1)
-				printf("\n");
+		if ((i % MAX_WIDTH) == (MAX_WIDTH - 1))
+			printf("\n");
+	}
+}
+
+void build_shape(char *shape, int x, int y)
+{
+	for (int i = 0; i < MAX_HEIGHT && *shape; i++, shape++)
+	{
+		for (int j = 0; j < MAX_WIDTH && *shape != '\n'; j++, shape++)
+		{
+			if (*shape == '#')
+				cellBuffer[i * MAX_WIDTH + j] = 1;
+			else
+				cellBuffer[i * MAX_WIDTH + j] = 0;
 		}
 	}
 }
 
-void build_glider(int x, int y)
-{
-	map[0 + y][1 + x].alive = 1;
-	map[1 + y][2 + x].alive = 1;
-	map[2 + y][0 + x].alive = 1;
-	map[2 + y][1 + x].alive = 1;
-	map[2 + y][2 + x].alive = 1;
-}
-
-void build_blinker(int x, int y)
-{
-	map[1 + y][1 + x].alive = 1;
-	map[1 + y][2 + x].alive = 1;
-	map[1 + y][0 + x].alive = 1;
-}
-
 void build_random()
 {
-	for (int i = 0; i < MAP_HEIGHT; i++)
-		for (int j = 0; j < MAP_WIDTH; j++)
-			map[i][j].alive = rand() % 2;
+	for (int i = 0; i < MAX_HEIGHT * MAX_WIDTH; i++)
+		cellBuffer[i] = rand() % 2;
 }

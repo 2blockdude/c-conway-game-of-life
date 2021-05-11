@@ -22,7 +22,9 @@ void build_beacon(int x, int y);
 void build_random();
 
 tile map[MAP_HEIGHT][MAP_WIDTH];
-clock_t deltaTime = 0;
+
+double deltaTime = 0;
+double fps = 0;
 
 int main()
 {
@@ -40,7 +42,8 @@ int main()
 
 		clock_t end = clock();
 
-		deltaTime = end - begin;
+		deltaTime = (double)(end - begin) / CLOCKS_PER_SEC;
+		fps = 1.0f / deltaTime;
 	}
 
 	return 0;
@@ -100,7 +103,7 @@ void update()
 
 void draw_map()
 {
-	printf("%d", deltaTime);
+	printf("%lf", fps);
 	printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
 	for (int i = 0; i < MAP_HEIGHT; i++)
 	{
