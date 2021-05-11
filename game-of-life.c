@@ -85,11 +85,16 @@ void update()
 
 		int neighbors =
 			// get above
-			cellBuffer[above * MAX_WIDTH + left]	+ cellBuffer[above * MAX_WIDTH + x]	+ cellBuffer[above * MAX_WIDTH + right]	+
+			cellBuffer[above * MAX_WIDTH + left] +
+			cellBuffer[above * MAX_WIDTH + x] +
+			cellBuffer[above * MAX_WIDTH + right] +
 			// get middle
-			cellBuffer[y * MAX_WIDTH + left]			+ 0											+ cellBuffer[y * MAX_WIDTH + right]			+
+			cellBuffer[y * MAX_WIDTH + left] +
+			cellBuffer[y * MAX_WIDTH + right] +
 			// get below
-			cellBuffer[below * MAX_WIDTH + left]	+ cellBuffer[below * MAX_WIDTH + x]	+ cellBuffer[below * MAX_WIDTH + right];
+			cellBuffer[below * MAX_WIDTH + left] +
+			cellBuffer[below * MAX_WIDTH + x] +
+			cellBuffer[below * MAX_WIDTH + right];
 
 		// cell rules
 		if (neighbors >= 4 || neighbors <= 1)
