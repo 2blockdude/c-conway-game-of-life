@@ -3,24 +3,26 @@
 #include <string.h>
 #include <time.h>
 
-#define MAX_HEIGHT 69
+#define MAX_HEIGHT 68
 #define MAX_WIDTH 212
 
 void init_map();
 void update();
 void draw_map();
 
+void build_shape(char *shape, int x, int y);
 void build_glider(int x, int y);
 void build_blinker(int x, int y);
 void build_toad(int x, int y);
 void build_beacon(int x, int y);
-void build_shape(char *shape, int x, int y);
+void build_ant(int x, int y);
 void build_random();
 
 char *cellOutput;
 char *cellBuffer;
 
-double deltaTime = CLOCKS_PER_SEC;
+unsigned int frame = 0;
+double deltaTime = 0;
 double fps = 0;
 
 int main()
@@ -28,14 +30,7 @@ int main()
 	srand(clock());
 
 	init_map();
-
-	char shape[] = 
-		" # \n" \
-		"  #\n" \
-		"###\n";
-
-	build_shape(shape, 0, 0);
-	//build_random();
+		build_glider(0, 0);
 
 	while (1)
 	{
@@ -44,13 +39,19 @@ int main()
 		update();
 		draw_map();
 
-		for (int i = 0; i < 49999999; i++);
+		//if (frame % 14 == 0)
+
+		for (int i = 0; i < 99999999; i++);
 
 		clock_t end = clock();
 
 		deltaTime = (double)(end - begin) / CLOCKS_PER_SEC;
 		fps = 1.0f / deltaTime;
+		frame++;
 	}
+
+	free(cellOutput);
+	free(cellBuffer);
 
 	return 0;
 }
@@ -71,14 +72,27 @@ void update()
 	{
 		cellOutput[i] = cellBuffer[i];
 
-		int x = i % MAX_WIDTH;
-		int y = (i - x) / MAX_WIDTH;
+		// gets columns and rows
+		int x = i % MAX_WIDTH;			// column
+		int y = (i - x) / MAX_WIDTH;	// row
+
+		// wrap around left right
+		int left = (x - 1) < 0 ? MAX_WIDTH - 1 : x - 1;
+		int right = (x + 1) % MAX_WIDTH;
+
+		// wrap around above below
+		int above = (y - 1) < 0 ? MAX_HEIGHT - 1 : y - 1;
+		int below = (y + 1) % MAX_HEIGHT;
 
 		int neighbors =
-			cellBuffer[(i - MAX_WIDTH - 1)]	+ cellBuffer[(i - MAX_WIDTH)]	+ cellBuffer[(i - MAX_WIDTH + 1)]	+
-			cellBuffer[(i - 1)]					+ 0									+ cellBuffer[(i + 1)]					+
-			cellBuffer[(i + MAX_WIDTH - 1)]	+ cellBuffer[(i + MAX_WIDTH)]	+ cellBuffer[(i + MAX_WIDTH + 1)];
+			// get above
+			cellBuffer[above * MAX_WIDTH + left]	+ cellBuffer[above * MAX_WIDTH + x]	+ cellBuffer[above * MAX_WIDTH + right]	+
+			// get middle
+			cellBuffer[y * MAX_WIDTH + left]			+ 0											+ cellBuffer[y * MAX_WIDTH + right]			+
+			// get below
+			cellBuffer[below * MAX_WIDTH + left]	+ cellBuffer[below * MAX_WIDTH + x]	+ cellBuffer[below * MAX_WIDTH + right];
 
+		// cell rules
 		if (neighbors >= 4 || neighbors <= 1)
 			cellOutput[i] = 0;
 		else if (neighbors == 3)
@@ -86,6 +100,7 @@ void update()
 
 	}
 
+	// swap output and buffer
 	char *temp = cellOutput;
 	cellOutput = cellBuffer;
 	cellBuffer = temp;
@@ -93,8 +108,9 @@ void update()
 
 void draw_map()
 {
-	printf("%lf", fps);
-	printf("------------------------------------------------------------------------\n");
+	printf("%lf\t|%lf\t|%d\n", fps, deltaTime, frame);
+	printf("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+
 	for (int i = 0; i < MAX_HEIGHT * MAX_WIDTH; i++)
 	{
 		if (cellOutput[i])
@@ -114,11 +130,62 @@ void build_shape(char *shape, int x, int y)
 		for (int j = 0; j < MAX_WIDTH && *shape != '\n'; j++, shape++)
 		{
 			if (*shape == '#')
-				cellBuffer[i * MAX_WIDTH + j] = 1;
+				cellBuffer[(i + y) * MAX_WIDTH + (j + x)] = 1;
 			else
-				cellBuffer[i * MAX_WIDTH + j] = 0;
+				cellBuffer[(i + y) * MAX_WIDTH + (j + x)] = 0;
 		}
 	}
+}
+
+void build_glider(int x, int y)
+{
+	char shape[] = 
+		" # \n" \
+		"  #\n" \
+		"###\n";
+
+	build_shape(shape, x, y);
+}
+
+void build_blinker(int x, int y)
+{
+	char shape[] =
+		" # \n" \
+		" # \n" \
+		" # ";
+
+	build_shape(shape, x, y);
+}
+
+void build_toad(int x, int y)
+{
+	char shape[] =
+		" ###\n" \
+		"### ";
+
+	build_shape(shape, x, y);
+}
+
+void build_beacon(int x, int y)
+{
+	char shape[] =
+		"  ##\n" \
+		"  ##\n" \
+		"##  \n" \
+		"##  ";
+
+	build_shape(shape, x, y);
+}
+
+void build_ant(int x, int y)
+{
+	char shape[] =
+		"##  \n" \
+		"  ##\n" \
+		"  ##\n" \
+		"##  ";
+
+	build_shape(shape, x, y);
 }
 
 void build_random()
