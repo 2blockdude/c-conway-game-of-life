@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <unistd.h>
 #include <time.h>
+#include <sys/time.h>
 
-#define MAX_HEIGHT 20
-#define MAX_WIDTH 20
+#define MAX_HEIGHT 10
+#define MAX_WIDTH 10
 
 void init_map();
 void update();
@@ -22,12 +23,20 @@ void build_random();
 char *cellOutput;
 char *cellBuffer;
 
-unsigned int frame = 0;
-double deltaTime = 0;
-double fps = 0;
+unsigned int frame = 0;	// number of frames
+double delta = 0;			// time between frames in milliseconds
+double fps = 0;			// frames per second
+clock_t cycles = 0;		// cycles per frame
+long int delay = 0;		// delay per frame
+int maxFps = 1000;		// max fps
 
-int main()
+double tdelta = 0;		// true delta
+double tfps = 0;			// true fps
+
+int main(int argc, char *argv[])
 {
+	if (argc == 2)
+		maxFps = atoi(argv[1]);
 	srand(clock());
 
 	init_map();
@@ -35,17 +44,27 @@ int main()
 
 	while (1)
 	{
+		struct timespec start;
+		struct timespec stop;
+
+		clock_gettime(CLOCK_MONOTONIC, &start);
+
 		clock_t begin = clock();
 
 		update();
 		draw_map();
 
-		for (int i = 0; i < 49999999; i++);
-
 		clock_t end = clock();
 
-		deltaTime = (double)(end - begin) / CLOCKS_PER_SEC;
-		fps = 1.0f / deltaTime;
+		clock_gettime(CLOCK_MONOTONIC, &stop);
+
+		cycles = end - begin;
+		delta = (double)cycles / CLOCKS_PER_SEC * 1000;
+		fps = 1000.0f / delta;
+
+		tdelta = (double)(stop.tv_nsec - start.tv_nsec) / 1000000;
+		tfps = 1000.0f / tdelta;
+
 		frame++;
 	}
 
@@ -112,8 +131,16 @@ void update()
 
 void draw_map()
 {
-	printf("%0.6lf\t|%0.6lf\t|%0.6d\n", fps, deltaTime, frame);
-	printf("------------------------------------------------\n");
+	printf("fps:\t%4.6f\n", fps);
+	printf("tfps:\t%4.6f\n", tfps);
+	printf("delta:\t%4.6lfms\n", delta);
+	printf("tdelta:\t%4.6lfms\n", tdelta);
+	printf("cpf:\t%0.6d\n", cycles);
+	printf("delay:\t%0.6lums\n", delay);
+	printf("frame:\t%0.6d\n", frame);
+	printf("------------\n");
+	//printf("fps: %4.6lf | cpf: %0.6d | delta: %4.6lfms | delay: %0.6lums | frame: %0.6d | tfps: %4.6f\n", fps, cycles, delta, delay, frame, tfps);
+	//printf("-------------------------------------------------------------------------------------------------\n");
 
 	for (int i = 0; i < MAX_HEIGHT * MAX_WIDTH; i++)
 	{
@@ -125,6 +152,8 @@ void draw_map()
 		if ((i % MAX_WIDTH) == (MAX_WIDTH - 1))
 			printf("\n");
 	}
+
+	printf("------------\n");
 }
 
 void build_shape(char *shape, int x, int y)

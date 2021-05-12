@@ -1,13 +1,13 @@
 CC = gcc
 CFLAGS = -g
-LIBS = 
+LIBS =
 C_SOURCES :=$(wildcard *.c)
 C_EXECUTABLE :=$(C_SOURCES:.c=)
 
 all:$(C_EXECUTABLE)
 
 $(C_EXECUTABLES): $(C_SOURCES)
-	$(CC) -o $@ $< $(CFLAGS)
+	$(CC) -o $@ $< $(CFLAGS) $(LIBS)
 
 .PHONY: clean
 
